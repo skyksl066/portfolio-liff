@@ -1,0 +1,19 @@
+{
+  "name": "portfolio-liff",
+  "version": "1.0.0",
+  "description": "LINE LIFF 個人持股管理頁面（Flask + MariaDB），由 LINE 圖文選單啟動，僅白名單使用者可進入。",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.106.2",
+    "webpack-cli": "^7.0.2"
+  },
+  "dependencies": {
+    "@line/liff": "^2.28.0"
+  }
+}

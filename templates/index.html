@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="app-shell">
+    <header class="app-header">
+        <h1 class="title">我的持股</h1>
+        <button id="btn-new" class="btn-icon" type="button" aria-label="新增持股" disabled>
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        </button>
+    </header>
+
+    <main id="content" aria-live="polite" aria-busy="true">
+        <div id="loading"></div>
+        <div id="empty" class="hidden">
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                </div>
+                <h3>尚無持股</h3>
+                <p>點右上角 <strong>+</strong> 按鈕<br>新增你的第一筆持股</p>
+            </div>
+        </div>
+        <div id="error" class="state-error hidden" role="alert"></div>
+        <div id="groups" class="groups"></div>
+    </main>
+</div>
+
+<dialog id="modal-edit" class="modal">
+    <form id="form-edit" method="dialog" novalidate>
+        <header class="modal-header">
+            <h2 id="modal-title">新增持股</h2>
+            <button type="button" class="btn-close" data-action="close" aria-label="關閉">
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </header>
+        <div class="modal-body">
+            <div class="form-row">
+                <label>市場</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="market" value="TW" checked> 台股</label>
+                    <label><input type="radio" name="market" value="US"> 美股</label>
+                </div>
+            </div>
+            <div class="form-row">
+                <label for="f-symbol">代號 *</label>
+                <input id="f-symbol" name="symbol" type="text" required maxlength="20" autocomplete="off" autocapitalize="characters">
+            </div>
+            <div class="form-row">
+                <label for="f-name">名稱</label>
+                <input id="f-name" name="name" type="text" maxlength="100" autocomplete="off">
+            </div>
+            <div class="form-row">
+                <label for="f-category">分類</label>
+                <input id="f-category" name="category" type="text" maxlength="50" list="dl-categories" autocomplete="off" placeholder="例：核心持股、觀察">
+                <datalist id="dl-categories"></datalist>
+            </div>
+            <div class="form-row two-col">
+                <div>
+                    <label for="f-shares">股數 *</label>
+                    <input id="f-shares" name="shares" type="number" inputmode="decimal" step="0.0001" min="0" required>
+                </div>
+                <div>
+                    <label for="f-avg-price">平均買入價 *</label>
+                    <input id="f-avg-price" name="avg_price" type="number" inputmode="decimal" step="0.0001" min="0" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <label for="f-purchase-date">買入日期</label>
+                <input id="f-purchase-date" name="purchase_date" type="date">
+            </div>
+            <div class="form-row">
+                <label for="f-note">備註</label>
+                <textarea id="f-note" name="note" maxlength="500" rows="2"></textarea>
+            </div>
+            <p id="form-error" class="form-error hidden"></p>
+        </div>
+        <footer class="modal-footer">
+            <button type="button" class="btn-secondary" data-action="close">取消</button>
+            <button type="submit" class="btn-primary" id="btn-save">儲存</button>
+        </footer>
+    </form>
+</dialog>
+
+<dialog id="modal-confirm" class="modal modal-small">
+    <form method="dialog">
+        <div class="modal-body">
+            <p id="confirm-message">確定要刪除這筆持股？</p>
+        </div>
+        <footer class="modal-footer">
+            <button type="submit" class="btn-secondary" value="cancel">取消</button>
+            <button type="submit" class="btn-danger" value="ok">刪除</button>
+        </footer>
+    </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='dist/bundle.js') }}"></script>
+{% endblock %}
