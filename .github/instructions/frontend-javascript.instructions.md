@@ -1,6 +1,6 @@
 ---
 description: "Guidelines for writing vanilla browser JavaScript without a framework"
-applyTo: "static/js/**/*.js"
+applyTo: "frontend/src/js/**/*.js"
 ---
 
 # Frontend JavaScript Guidelines
@@ -13,6 +13,19 @@ applyTo: "static/js/**/*.js"
 - Never assign variables, functions, or config to `window.*`.
 - Server-injected runtime config (e.g. from Flask) must be embedded in the HTML as a `<script type="application/json" id="app-config">` data node — the browser does not execute this tag. A dedicated bridge module (e.g. `config.js`) reads it once via `document.getElementById('app-config').textContent` and re-exports named constants. All other modules import from that bridge.
 - State shared between modules must be passed as function arguments or imported from a shared module — never stored on `window`.
+
+## File structure
+- Organize source files under `src/js/` by responsibility:
+  ```
+  src/js/
+    core/       # infrastructure with no feature logic (config, auth, API client, utilities)
+    ui/         # shared UI components
+    features/   # one sub-folder per feature; each owns its DOM, state, and API calls
+    main.js     # entry point: wires everything together
+  ```
+- Keep `core/` free of feature logic. Each feature folder is self-contained.
+- `main.js` is responsible for bootstrapping: caching DOM refs, initializing feature modules, and binding top-level events.
+- Prefix private module-level variables and functions with `_`.
 
 ## Coding standards
 - Use `const` by default; use `let` only when reassignment is required. Never use `var`.
