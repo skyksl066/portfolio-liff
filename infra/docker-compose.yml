@@ -1,0 +1,16 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: portfolio-mariadb
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: "123456"
+      MARIADB_DATABASE: "portfolio"
+      MARIADB_USER: "portfolio"
+      MARIADB_PASSWORD: "123456"
+    volumes:
+      - ./mariadb-data:/var/lib/mysql
+
+# docker exec -it portfolio-mariadb mariadb -uportfolio -p portfolio

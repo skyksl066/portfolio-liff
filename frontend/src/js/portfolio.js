@@ -1,3 +1,4 @@
+import '../css/style.css';
 import { initLiff, api, escapeHtml } from './liff-init.js';
 
 'use strict';
@@ -45,11 +46,13 @@ let cachedHoldings = [];
         }
 
         els.btnNew.disabled = false;
+        els.btnStrategy.disabled = false;
         await loadAndRender();
     });
 
     function cacheEls() {
         els.btnNew = document.getElementById('btn-new');
+        els.btnStrategy = document.getElementById('btn-strategy');
         els.loading = document.getElementById('loading');
         els.empty = document.getElementById('empty');
         els.error = document.getElementById('error');
@@ -64,10 +67,17 @@ let cachedHoldings = [];
 
         els.modalConfirm = document.getElementById('modal-confirm');
         els.confirmMessage = document.getElementById('confirm-message');
+
+        els.modalStrategy = document.getElementById('modal-strategy');
+        els.formStrategy = document.getElementById('form-strategy');
+        els.fStrategy = document.getElementById('f-strategy');
+        els.strategyError = document.getElementById('strategy-error');
+        els.btnStrategySave = document.getElementById('btn-strategy-save');
     }
 
     function bindEvents() {
         els.btnNew.addEventListener('click', () => openEdit(null));
+        els.btnStrategy.addEventListener('click', openStrategy);
 
         els.modalEdit.addEventListener('click', (e) => {
             if (e.target.dataset.action === 'close') els.modalEdit.close();
@@ -77,6 +87,15 @@ let cachedHoldings = [];
             // <form method="dialog"> 預設 ESC 也會 submit；攔下避免送出表單
             e.preventDefault();
             els.modalEdit.close();
+        });
+
+        els.modalStrategy.addEventListener('click', (e) => {
+            if (e.target.dataset.action === 'close') els.modalStrategy.close();
+        });
+        els.formStrategy.addEventListener('submit', onSubmitStrategy);
+        els.modalStrategy.addEventListener('cancel', (e) => {
+            e.preventDefault();
+            els.modalStrategy.close();
         });
     }
 
@@ -289,6 +308,49 @@ let cachedHoldings = [];
         } catch (err) {
             if (err.code === 'FORBIDDEN' || err.code === 'UNAUTHORIZED') return;
             showError(err.message || '刪除失敗');
+        }
+    }
+
+    async function openStrategy() {
+        els.strategyError.classList.add('hidden');
+        els.strategyError.textContent = '';
+        els.fStrategy.value = '';
+        els.btnStrategySave.disabled = true;
+        els.modalStrategy.showModal();
+        try {
+            const data = await api('/api/strategy');
+            els.fStrategy.value = data.strategy || '';
+        } catch (err) {
+            if (err.code === 'FORBIDDEN' || err.code === 'UNAUTHORIZED') return;
+            els.strategyError.textContent = err.message || '載入策略失敗';
+            els.strategyError.classList.remove('hidden');
+        } finally {
+            els.btnStrategySave.disabled = false;
+        }
+    }
+
+    async function onSubmitStrategy(e) {
+        e.preventDefault();
+        els.strategyError.classList.add('hidden');
+        const strategy = (els.fStrategy.value || '').trim();
+        if (strategy.length > 4000) {
+            els.strategyError.textContent = '策略長度不可超過 4000';
+            els.strategyError.classList.remove('hidden');
+            return;
+        }
+        els.btnStrategySave.disabled = true;
+        try {
+            await api('/api/strategy', {
+                method: 'PUT',
+                body: JSON.stringify({ strategy }),
+            });
+            els.modalStrategy.close();
+        } catch (err) {
+            if (err.code === 'FORBIDDEN' || err.code === 'UNAUTHORIZED') return;
+            els.strategyError.textContent = err.message || '儲存失敗';
+            els.strategyError.classList.remove('hidden');
+        } finally {
+            els.btnStrategySave.disabled = false;
         }
     }
 

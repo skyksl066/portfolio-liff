@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """FTP deployment script for portfolio-liff.
 
-Uploads all required project files to the shared hosting server and
-touches tmp/restart.txt to trigger a Passenger application reload.
+Run from the repo root. Uploads backend and compiled frontend files to the
+shared hosting server and touches tmp/restart.txt to trigger Passenger reload.
 
 Required environment variables:
     FTP_HOST, FTP_USER, FTP_PASSWORD
@@ -13,23 +13,29 @@ import sys
 from datetime import datetime, timezone
 
 FILES_TO_UPLOAD = [
-    ('app.py',                    'app.py'),
-    ('requirements.txt',          'requirements.txt'),
-    # core package
-    ('core/__init__.py',          'core/__init__.py'),
-    ('core/auth.py',              'core/auth.py'),
-    ('core/config.py',            'core/config.py'),
-    ('core/db.py',                'core/db.py'),
-    # routes package
-    ('routes/__init__.py',        'routes/__init__.py'),
-    ('routes/api.py',             'routes/api.py'),
-    ('routes/pages.py',           'routes/pages.py'),
+    # backend entry point
+    ('backend/run.py',                      'backend/run.py'),
+    ('backend/requirements.txt',            'backend/requirements.txt'),
+    # app package
+    ('backend/app/__init__.py',             'backend/app/__init__.py'),
+    # api routes
+    ('backend/app/api/__init__.py',         'backend/app/api/__init__.py'),
+    ('backend/app/api/holdings.py',         'backend/app/api/holdings.py'),
+    ('backend/app/api/users.py',            'backend/app/api/users.py'),
+    ('backend/app/api/system.py',           'backend/app/api/system.py'),
+    ('backend/app/api/pages.py',            'backend/app/api/pages.py'),
+    # core
+    ('backend/app/core/__init__.py',        'backend/app/core/__init__.py'),
+    ('backend/app/core/auth.py',            'backend/app/core/auth.py'),
+    ('backend/app/core/config.py',          'backend/app/core/config.py'),
+    ('backend/app/core/db.py',              'backend/app/core/db.py'),
     # templates
-    ('templates/base.html',       'templates/base.html'),
-    ('templates/index.html',      'templates/index.html'),
-    # static (compiled output only — no source files)
-    ('static/css/style.css',      'static/css/style.css'),
-    ('static/dist/bundle.js',     'static/dist/bundle.js'),
+    ('backend/app/templates/index.html',    'backend/app/templates/index.html'),
+    # compiled frontend (no source files)
+    ('frontend/dist/bundle.js',             'frontend/dist/bundle.js'),
+    ('frontend/dist/bundle.css',            'frontend/dist/bundle.css'),
+    # scripts
+    ('backend/scripts/daily_brief.py',      'backend/scripts/daily_brief.py'),
 ]
 
 

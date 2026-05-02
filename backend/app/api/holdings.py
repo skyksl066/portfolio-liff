@@ -2,30 +2,22 @@ import re
 
 from flask import Blueprint, request, jsonify, g
 
-from core.auth import require_line_auth
-from core.db import get_conn
+from ..core.auth import require_line_auth
+from ..core.db import get_conn
 
-api_bp = Blueprint('api', __name__)
+bp = Blueprint('holdings', __name__)
 
 VALID_MARKETS = {'TW', 'US'}
-
 _UUID_RE = re.compile(
     r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.I
 )
-
 
 
 def _valid_uuid(val):
     return bool(_UUID_RE.match(str(val or '')))
 
 
-@api_bp.get('/me')
-@require_line_auth
-def me():
-    return jsonify({'userId': g.user_id, 'displayName': g.display_name})
-
-
-@api_bp.get('/holdings')
+@bp.get('/holdings')
 @require_line_auth
 def list_holdings():
     with get_conn() as conn:
@@ -43,7 +35,7 @@ def list_holdings():
     return jsonify([_serialize_row(r) for r in rows])
 
 
-@api_bp.post('/holdings')
+@bp.post('/holdings')
 @require_line_auth
 def create_holding():
     data = request.get_json(silent=True) or {}
@@ -67,7 +59,7 @@ def create_holding():
     return jsonify({'id': new_id}), 201
 
 
-@api_bp.put('/holdings/<string:hid>')
+@bp.put('/holdings/<string:hid>')
 @require_line_auth
 def update_holding(hid):
     if not _valid_uuid(hid):
@@ -91,7 +83,7 @@ def update_holding(hid):
     return jsonify({'id': hid})
 
 
-@api_bp.delete('/holdings/<string:hid>')
+@bp.delete('/holdings/<string:hid>')
 @require_line_auth
 def delete_holding(hid):
     if not _valid_uuid(hid):
@@ -107,7 +99,7 @@ def delete_holding(hid):
     return jsonify({'ok': True})
 
 
-@api_bp.get('/categories')
+@bp.get('/categories')
 @require_line_auth
 def list_categories():
     with get_conn() as conn:

@@ -1,13 +1,29 @@
-{% extends "base.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>持股管理</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bundle.css') }}">
+    <script type="application/json" id="app-config">{{ app_config | tojson }}</script>
+</head>
+<body>
 <div class="app-shell">
     <header class="app-header">
         <h1 class="title">我的持股</h1>
-        <button id="btn-new" class="btn-icon" type="button" aria-label="新增持股" disabled>
-            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-        </button>
+        <div class="header-actions">
+            <button id="btn-strategy" class="btn-icon btn-icon--ghost" type="button" aria-label="策略設定" disabled>
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            </button>
+            <button id="btn-new" class="btn-icon" type="button" aria-label="新增持股" disabled>
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+            </button>
+        </div>
     </header>
 
     <main id="content" aria-live="polite" aria-busy="true">
@@ -86,6 +102,32 @@
     </form>
 </dialog>
 
+<dialog id="modal-strategy" class="modal">
+    <form id="form-strategy" method="dialog" novalidate>
+        <header class="modal-header">
+            <h2>策略設定</h2>
+            <button type="button" class="btn-close" data-action="close" aria-label="關閉">
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </header>
+        <div class="modal-body">
+            <div class="form-row">
+                <label for="f-strategy">每日 AI 分析會依此策略產出建議</label>
+                <textarea id="f-strategy" name="strategy" maxlength="4000" rows="10"
+                    placeholder="例：以長線存股為主，重視殖利率與穩定獲利；不追高、不殺低；遇單一個股跌破均線 5% 以上提醒檢視。"></textarea>
+                <p class="form-hint">最多 4000 字。留空則不會收到每日分析。</p>
+            </div>
+            <p id="strategy-error" class="form-error hidden"></p>
+        </div>
+        <footer class="modal-footer">
+            <button type="button" class="btn-secondary" data-action="close">取消</button>
+            <button type="submit" class="btn-primary" id="btn-strategy-save">儲存</button>
+        </footer>
+    </form>
+</dialog>
+
 <dialog id="modal-confirm" class="modal modal-small">
     <form method="dialog">
         <div class="modal-body">
@@ -97,8 +139,7 @@
         </footer>
     </form>
 </dialog>
-{% endblock %}
 
-{% block scripts %}
-<script defer src="{{ url_for('static', filename='dist/bundle.js') }}"></script>
-{% endblock %}
+<script defer src="{{ url_for('static', filename='bundle.js') }}"></script>
+</body>
+</html>

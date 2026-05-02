@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS whitelist_users (
   line_user_id VARCHAR(64) NOT NULL UNIQUE,
   display_name VARCHAR(100),
   note VARCHAR(255),
+  strategy TEXT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

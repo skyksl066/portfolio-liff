@@ -90,6 +90,13 @@ html, body {
     color: var(--color-text);
 }
 
+/* ─── Header Actions ─────────────────────────────────────────────────── */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* ─── Add Button ─────────────────────────────────────────────────────── */
 .btn-icon {
     display: flex;
@@ -126,6 +133,27 @@ html, body {
 
 .btn-icon:active:not(:disabled) {
     transform: scale(0.95);
+}
+
+/* Ghost variant — used for secondary header actions (e.g. settings) */
+.btn-icon--ghost {
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    border: 1.5px solid var(--color-border);
+    box-shadow: none;
+}
+
+.btn-icon--ghost svg {
+    width: 20px;
+    height: 20px;
+}
+
+@media (hover: hover) {
+    .btn-icon--ghost:hover:not(:disabled) {
+        background: var(--color-surface-2);
+        color: var(--color-text);
+        box-shadow: none;
+    }
 }
 
 /* ─── Content Area ───────────────────────────────────────────────────── */
@@ -610,6 +638,13 @@ html, body {
     font-weight: 500;
     color: var(--color-text-secondary);
     margin-bottom: 6px;
+}
+
+.form-hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    line-height: 1.5;
 }
 
 .form-error {

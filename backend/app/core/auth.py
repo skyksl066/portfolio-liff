@@ -3,8 +3,8 @@ from functools import wraps
 from flask import request, jsonify, g
 import requests
 
-from core import config
-from core.db import get_conn
+from . import config
+from .db import get_conn
 
 LINE_PROFILE_URL = 'https://api.line.me/v2/profile'
 
@@ -14,7 +14,6 @@ def verify_access_token(access_token: str):
     Access Token 由 LIFF SDK 自動刷新，不會像 ID Token 一樣短暫過期。
     回傳 {'sub': userId, 'name': displayName}；失敗回 None。
     """
-    # 本地開發繞過驗證
     if (os.getenv('FLASK_ENV') == 'development'
             and os.getenv('DEV_MODE_ENABLED') == 'true'):
         from flask import request as _req

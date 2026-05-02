@@ -1,7 +1,7 @@
 import pymysql
 import pymysql.cursors
 from contextlib import contextmanager
-from core import config
+from . import config
 
 
 @contextmanager

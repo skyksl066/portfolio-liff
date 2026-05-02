@@ -9,25 +9,43 @@ LIFF（LINE 前端）+ Flask（後端）+ MariaDB（資料庫）的個人持股 
 ## 程式碼結構
 
 ```
-app.py                  # Flask app factory + /health；註冊 pages_bp 與 api_bp(/api)
-core/
-  config.py             # 環境變數讀取與必要欄位驗證（validate_config）
-  auth.py               # require_line_auth decorator + LINE Access Token 驗證 + 白名單檢查
-  db.py                 # PyMySQL get_conn() context manager（DictCursor、commit/rollback）
-routes/
-  pages.py              # GET / 渲染 index.html（注入 liff_id / dev_mode / script_root）
-  api.py                # /api/me, /api/holdings (GET/POST/PUT/DELETE), /api/categories
-sql/schema.sql          # whitelist_users + stock_holdings 兩張表
-src/js/
-  config.js             # 從 <script id="app-config"> 讀取後端注入的設定
-  liff-init.js          # liff.init / token / api() fetch wrapper / 403/401 全頁畫面
-  portfolio.js          # 持股清單渲染、新增/編輯/刪除 modal
-templates/{base,index}.html
-static/css/style.css
-static/dist/bundle.js   # webpack 打包輸出（由 src/js/portfolio.js 入口）
-scripts/ftp_upload.py   # FTP 部署腳本（白名單檔案 + tmp/restart.txt 觸發 Passenger reload）
-.github/workflows/deploy.yml  # push main 自動 npm build + FTP 上傳
-webpack.config.js       # entry: src/js/portfolio.js → static/dist/bundle.js（production mode）
+backend/
+  run.py                      # 啟動入口：create_app() + debug 模式依 FLASK_ENV 決定
+  requirements.txt
+  app/
+    __init__.py               # create_app()：Flask 工廠、validate_config、register_routes、cache header
+    templates/
+      index.html              # 單一 shell（無繼承）；{{ app_config | tojson }} 注入設定
+    api/
+      __init__.py             # register_routes()：掛載各 Blueprint
+      holdings.py             # /api/holdings (GET/POST/PUT/DELETE)、/api/categories
+      users.py                # /api/me、/api/strategy (GET/PUT)
+      pages.py                # GET / 渲染 index.html（注入 app_config dict）
+      system.py               # GET /health（無 /api prefix）
+    core/
+      config.py               # Config class（Flask config）、DB_CONFIG、validate_config(app)
+      auth.py                 # require_line_auth decorator + LINE Access Token 驗證 + 白名單檢查
+      db.py                   # PyMySQL get_conn() context manager（DictCursor、commit/rollback）
+  scripts/
+    ftp_upload.py             # FTP 部署腳本（從 repo root 執行）
+    daily_brief.py            # Gemini 每日持股分析排程
+frontend/
+  webpack.config.js           # entry: src/js/portfolio.js → dist/bundle.{js,css}（MiniCssExtractPlugin）
+  package.json
+  src/
+    js/
+      config.js               # 從 <script id="app-config"> 讀取後端注入的設定
+      liff-init.js            # liff.init / token / api() fetch wrapper / 403/401 全頁畫面
+      portfolio.js            # 持股清單渲染、新增/編輯/刪除 modal
+    css/
+      style.css               # 所有樣式（webpack 編譯進 bundle.css）
+  dist/
+    bundle.js                 # webpack 輸出（Flask static_folder 指向此目錄）
+    bundle.css
+infra/
+  docker-compose.yml          # 本地 MariaDB（port 3306）
+sql/
+  schema.sql                  # whitelist_users + stock_holdings 兩張表
 ```
 
 ## 架構重點
@@ -38,7 +56,8 @@ webpack.config.js       # entry: src/js/portfolio.js → static/dist/bundle.js�
 - **本地開發繞過驗證**：`FLASK_ENV=development` 且 `DEV_MODE_ENABLED=true` 且 host 為 localhost/127.0.0.1 時，`verify_access_token()` 直接回 `U_dev_test_user`；前端 `liff-init.js` 看到 `devMode=true` 時跳過 `liff.init`。
 - **持股 id 是 BINARY(16) UUID**：INSERT 時 `SET @new_id = UNHEX(REPLACE(UUID(),'-',''))`；查詢 SELECT 時用 `HEX()` + 多次 `INSERT()` 轉回 hyphenated 字串；API 路徑收到字串先用 `_UUID_RE` 驗證格式。
 - **分類欄位** 故意用 `VARCHAR(50)` 直接存字串，不另開 categories 表 — 重新命名分類用一句 UPDATE，前端 autocomplete 由 `/api/categories`（`SELECT DISTINCT category`）取得。
-- **前端設定注入**：`templates/base.html` 用 `<script type="application/json" id="app-config">` 載入 `liffId / devMode / scriptRoot`；`src/js/config.js` 用 `JSON.parse` 讀取，**不透過 `window.*`**（script 標籤 type 不是 JS，不會被執行）。
+- **前端設定注入**：`backend/app/templates/index.html` 用 `<script type="application/json" id="app-config">` 載入 `liffId / devMode / scriptRoot`；`src/js/config.js` 用 `JSON.parse` 讀取，**不透過 `window.*`**。
+- **Static folder**：`create_app()` 用 `pathlib.Path(__file__).parent.parent.parent / 'frontend' / 'dist'` 計算絕對路徑，掛在 `/static`。Cache header 依環境：`app.debug=True`（dev）→ `no-cache, must-revalidate`；prod → `public, max-age=31536000`。
 - **API URL 帶 SCRIPT_ROOT**：部署在子路徑 `/portfolio/` 下，前端 `api()` 會自動 prepend `SCRIPT_ROOT`。
 
 ## 安全紅線（不可違反）
@@ -53,22 +72,29 @@ webpack.config.js       # entry: src/js/portfolio.js → static/dist/bundle.js�
 ## 常用指令
 
 ```bash
-pip install -r requirements.txt   # 後端相依
-npm install                        # 前端相依（webpack + @line/liff）
-npm run build                      # 打包 src/js/portfolio.js → static/dist/bundle.js
-npm run watch                      # 開發時 webpack watch
-python app.py                      # 本地開發伺服器
+# 後端
+pip install -r backend/requirements.txt
+cd backend && python run.py          # 本地開發伺服器
+
+# 前端
+cd frontend && npm install
+cd frontend && npm run build         # 輸出 dist/bundle.js + dist/bundle.css
+cd frontend && npm run watch         # 開發時 webpack watch
+
+# 本地 DB（Docker）
+docker compose -f infra/docker-compose.yml up -d
 ```
 
 ## 部署
 
-- **CI/CD**：push 到 `main` → `.github/workflows/deploy.yml` 自動 `npm ci` + `npm run build` + `python scripts/ftp_upload.py`。
-- **FTP 上傳**白名單檔案見 `scripts/ftp_upload.py` 的 `FILES_TO_UPLOAD`（只上傳必要檔案，**不傳 src/**）；上傳後寫入 `tmp/restart.txt` 觸發 Passenger reload。
+- **CI/CD**：push 到 `main` → `.github/workflows/deploy.yml` 自動 `npm ci` + `npm run build` + `python backend/scripts/ftp_upload.py`。
+- **FTP 上傳**：`backend/scripts/ftp_upload.py` 從 **repo root** 執行，白名單檔案見 `FILES_TO_UPLOAD`（只上傳必要檔案，不傳 `src/`、`node_modules/`）；上傳後寫入 `tmp/restart.txt` 觸發 Passenger reload。
 - **目標 URL**：`https://<your-domain>/portfolio/`，LIFF endpoint 需指向此 URL。
 - **白名單**：透過 phpMyAdmin 對 `whitelist_users` 手動 INSERT 維護（首次使用者會在 403 頁面看到自己的 userId 並可一鍵複製）。
 
 ## 修改注意事項
 
-- 改 `src/js/*.js` 後**必須執行 `npm run build`** 才會更新 `static/dist/bundle.js`；否則本地 / FTP 部署都會用到舊版 bundle。
-- 新增需要部署的檔案要記得加進 `scripts/ftp_upload.py` 的 `FILES_TO_UPLOAD`，否則 GitHub Actions 不會上傳。
+- 改 `frontend/src/` 下任何檔案後**必須執行 `npm run build`** 才會更新 `frontend/dist/`；否則本地 / FTP 部署都會用到舊版 bundle。
+- 新增需要部署的後端檔案要記得加進 `backend/scripts/ftp_upload.py` 的 `FILES_TO_UPLOAD`。
 - 改 schema 時同步更新 `sql/schema.sql` 並通知使用者在伺服器手動執行 ALTER（沒有自動 migration 機制）。
+- 新增 API route：在對應的 blueprint 檔案（`holdings.py` / `users.py` / `system.py`）加入，**不要**動 `api/api.py`（已廢棄）。
