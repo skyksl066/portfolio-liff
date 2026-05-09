@@ -143,6 +143,9 @@ def _validate(data):
         return 'symbol 必填'
     if len(str(symbol).strip()) > 20:
         return 'symbol 長度不可超過 20'
+    name = data.get('name')
+    if name is not None and len(str(name).strip()) > 100:
+        return 'name 長度不可超過 100'
     try:
         shares = float(data.get('shares'))
         avg = float(data.get('avg_price'))

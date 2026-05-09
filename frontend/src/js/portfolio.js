@@ -18,6 +18,9 @@ let cachedHoldings = [];
         }).format(n);
     };
 
+    /** Strip ASCII control characters to prevent prompt injection via non-printable chars. */
+    const stripCtrl = (s) => String(s).replace(/[\x00-\x1F\x7F]/g, ' ').trim();
+
     const fmtDate = (dateStr) => {
         if (!dateStr) return null;
         const d = new Date(dateStr + 'T00:00:00');
@@ -47,12 +50,14 @@ let cachedHoldings = [];
 
         els.btnNew.disabled = false;
         els.btnStrategy.disabled = false;
+        els.btnAnalysis.disabled = false;
         await loadAndRender();
     });
 
     function cacheEls() {
         els.btnNew = document.getElementById('btn-new');
         els.btnStrategy = document.getElementById('btn-strategy');
+        els.btnAnalysis = document.getElementById('btn-analysis');
         els.loading = document.getElementById('loading');
         els.empty = document.getElementById('empty');
         els.error = document.getElementById('error');
@@ -79,6 +84,7 @@ let cachedHoldings = [];
     function bindEvents() {
         els.btnNew.addEventListener('click', () => openEdit(null));
         els.btnStrategy.addEventListener('click', openStrategy);
+        els.btnAnalysis.addEventListener('click', onClickAnalysis);
         els.fSymbol.addEventListener('input', () => { els.fSymbol.value = els.fSymbol.value.toUpperCase(); });
 
         els.modalEdit.addEventListener('click', (e) => {
@@ -310,6 +316,34 @@ let cachedHoldings = [];
         } catch (err) {
             if (err.code === 'FORBIDDEN' || err.code === 'UNAUTHORIZED') return;
             showError(err.message || '刪除失敗');
+        }
+    }
+
+    async function onClickAnalysis() {
+        els.btnAnalysis.disabled = true;
+        try {
+            const data = await api('/api/strategy');
+            const strategy = (data.strategy || '').trim();
+
+            const holdingLines = cachedHoldings.map((h) => {
+                const name = h.name ? ' ' + stripCtrl(h.name) : '';
+                return h.market + ' ' + h.symbol + name + ' ' + Number(h.shares) + '股 均價' + Number(h.avg_price);
+            }).join('\n');
+
+            const parts = ['請根據以下資訊給我今日持股分析報告：'];
+            if (strategy) parts.push('【我的投資策略】\n' + stripCtrl(strategy));
+            parts.push('【我的持股清單】\n' + (holdingLines || '（尚無持股）'));
+
+            const query = encodeURIComponent(parts.join('\n\n'));
+            if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+                window.location.href = 'perplexity-app://search?q=' + query;
+            } else {
+                window.open('https://www.perplexity.ai/search?q=' + query, '_blank');
+            }
+        } catch (err) {
+            if (err.code === 'FORBIDDEN' || err.code === 'UNAUTHORIZED') return;
+        } finally {
+            els.btnAnalysis.disabled = false;
         }
     }
 

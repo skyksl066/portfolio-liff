@@ -92,13 +92,24 @@ docker compose -f infra/docker-compose.yml up -d
 - **目標 URL**：`https://<your-domain>/portfolio/`，LIFF endpoint 需指向此 URL。
 - **白名單**：透過 phpMyAdmin 對 `whitelist_users` 手動 INSERT 維護（首次使用者會在 403 頁面看到自己的 userId 並可一鍵複製）。
 
+## 功能改動後的必要檢查
+
+每次改動功能後，**必須執行以下檢查**，確認無編譯錯誤才算完成：
+
+```bash
+# 前端：確認 webpack 能成功 build
+cd frontend && npm run build
+
+# 後端：確認所有 Python 檔案語法正確（遞迴掃描 backend/）
+python -m compileall backend/
+```
+
 ## 前端撰寫規範
 
 - **禁止在 HTML 中寫 inline JavaScript**（`onclick`、`oninput` 等 event attribute）。所有事件綁定集中在 `portfolio.js` 的 `bindEvents()`；需要的 DOM 元素先在 `cacheEls()` 快取到 `els` 物件。
 
 ## 修改注意事項
 
-- 改 `frontend/src/` 下任何檔案後**必須執行 `npm run build`** 才會更新 `frontend/dist/`；否則本地 / FTP 部署都會用到舊版 bundle。
 - 新增需要部署的後端檔案要記得加進 `backend/scripts/ftp_upload.py` 的 `FILES_TO_UPLOAD`。
 - 改 schema 時同步更新 `sql/schema.sql` 並通知使用者在伺服器手動執行 ALTER（沒有自動 migration 機制）。
 - 新增 API route：在對應的 blueprint 檔案（`holdings.py` / `users.py` / `system.py`）加入，**不要**動 `api/api.py`（已廢棄）。
