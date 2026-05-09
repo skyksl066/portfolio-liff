@@ -26,7 +26,7 @@ def create_app():
             if app.debug:
                 response.headers['Cache-Control'] = 'no-cache, must-revalidate'
             else:
-                response.headers['Cache-Control'] = 'public, max-age=31536000'
+                response.headers['Cache-Control'] = 'no-cache'
         return response
 
     return app
