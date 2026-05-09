@@ -293,7 +293,7 @@ let cachedHoldings = [];
         const shares = Number(p.shares);
         const avg = Number(p.avg_price);
         if (!isFinite(shares) || !isFinite(avg)) return '股數 / 均價必須為數字';
-        if (shares <= 0) return '股數必須大於 0';
+        if (shares < 0) return '股數必須大於 0';
         if (avg < 0) return '均價不可小於 0';
         return null;
     }
