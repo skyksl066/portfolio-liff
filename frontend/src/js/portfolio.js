@@ -293,7 +293,7 @@ let cachedHoldings = [];
         const shares = Number(p.shares);
         const avg = Number(p.avg_price);
         if (!isFinite(shares) || !isFinite(avg)) return '股數 / 均價必須為數字';
-        if (shares < 0) return '股數必須大於 0';
+        if (shares < 0) return '股數不可小於 0';
         if (avg < 0) return '均價不可小於 0';
         return null;
     }
@@ -330,7 +330,7 @@ let cachedHoldings = [];
                 return h.market + ' ' + h.symbol + name + ' ' + Number(h.shares) + '股 均價' + Number(h.avg_price);
             }).join('\n');
 
-            const parts = ['請根據以下資訊給我今日持股分析報告：'];
+            const parts = ['請根據以下資訊給我持股分析報告：'];
             if (strategy) parts.push('【我的投資策略】\n' + stripCtrl(strategy));
             parts.push('【我的持股清單】\n' + (holdingLines || '（尚無持股）'));
 
