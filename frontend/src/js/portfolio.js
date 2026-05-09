@@ -336,7 +336,14 @@ let cachedHoldings = [];
 
             const query = encodeURIComponent(parts.join('\n\n'));
             if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+                let appOpened = false;
+                const onHidden = () => { appOpened = true; };
+                document.addEventListener('visibilitychange', onHidden, { once: true });
                 window.location.href = 'perplexity-app://search?q=' + query;
+                setTimeout(() => {
+                    document.removeEventListener('visibilitychange', onHidden);
+                    if (!appOpened) alert('請先安裝 Perplexity App 再使用此功能');
+                }, 1500);
             } else {
                 window.open('https://www.perplexity.ai/search?q=' + query, '_blank');
             }
