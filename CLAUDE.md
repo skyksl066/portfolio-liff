@@ -92,6 +92,10 @@ docker compose -f infra/docker-compose.yml up -d
 - **目標 URL**：`https://<your-domain>/portfolio/`，LIFF endpoint 需指向此 URL。
 - **白名單**：透過 phpMyAdmin 對 `whitelist_users` 手動 INSERT 維護（首次使用者會在 403 頁面看到自己的 userId 並可一鍵複製）。
 
+## 前端撰寫規範
+
+- **禁止在 HTML 中寫 inline JavaScript**（`onclick`、`oninput` 等 event attribute）。所有事件綁定集中在 `portfolio.js` 的 `bindEvents()`；需要的 DOM 元素先在 `cacheEls()` 快取到 `els` 物件。
+
 ## 修改注意事項
 
 - 改 `frontend/src/` 下任何檔案後**必須執行 `npm run build`** 才會更新 `frontend/dist/`；否則本地 / FTP 部署都會用到舊版 bundle。

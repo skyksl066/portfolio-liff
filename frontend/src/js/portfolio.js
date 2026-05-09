@@ -64,6 +64,7 @@ let cachedHoldings = [];
         els.formError = document.getElementById('form-error');
         els.btnSave = document.getElementById('btn-save');
         els.dlCategories = document.getElementById('dl-categories');
+        els.fSymbol = document.getElementById('f-symbol');
 
         els.modalConfirm = document.getElementById('modal-confirm');
         els.confirmMessage = document.getElementById('confirm-message');
@@ -78,6 +79,7 @@ let cachedHoldings = [];
     function bindEvents() {
         els.btnNew.addEventListener('click', () => openEdit(null));
         els.btnStrategy.addEventListener('click', openStrategy);
+        els.fSymbol.addEventListener('input', () => { els.fSymbol.value = els.fSymbol.value.toUpperCase(); });
 
         els.modalEdit.addEventListener('click', (e) => {
             if (e.target.dataset.action === 'close') els.modalEdit.close();

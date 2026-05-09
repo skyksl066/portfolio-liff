@@ -43,8 +43,9 @@ function showSessionExpired() {
             '<div class="forbidden-icon forbidden-icon--warn">' + _ICON_CLOCK + '</div>' +
             '<h2>工作階段已逾時</h2>' +
             '<p>頁面閒置過久，LINE 授權已失效<br>請重新載入以繼續使用</p>' +
-            '<button onclick="location.reload()" class="btn-reload" type="button">重新載入</button>' +
+            '<button class="btn-reload" type="button">重新載入</button>' +
         '</div>';
+    document.querySelector('.btn-reload').addEventListener('click', () => location.reload());
 }
 
 function showForbidden(userId) {

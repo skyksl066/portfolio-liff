@@ -856,3 +856,7 @@ html, body {
         transition-duration: 0.01ms !important;
     }
 }
+
+#f-symbol {
+    text-transform: uppercase;
+}
