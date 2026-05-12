@@ -19,7 +19,7 @@ let cachedHoldings = [];
     };
 
     /** Strip ASCII control characters to prevent prompt injection via non-printable chars. */
-    const stripCtrl = (s) => String(s).replace(/[\x00-\x1F\x7F]/g, ' ').trim();
+    const stripCtrl = (s) => String(s).replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, ' ').trim();
 
     const fmtDate = (dateStr) => {
         if (!dateStr) return null;
@@ -327,12 +327,12 @@ let cachedHoldings = [];
 
             const holdingLines = cachedHoldings.map((h) => {
                 const name = h.name ? ' ' + stripCtrl(h.name) : '';
-                return h.market + ' ' + h.symbol + name + ' ' + Number(h.shares) + '股 均價' + Number(h.avg_price);
+                return '- ' + h.market + ' ' + h.symbol + name + ' ' + Number(h.shares) + '股 均價' + Number(h.avg_price);
             }).join('\n');
 
-            const parts = ['請根據以下資訊給我持股分析報告：'];
-            if (strategy) parts.push('【我的投資策略】\n' + stripCtrl(strategy));
-            parts.push('【我的持股清單】\n' + (holdingLines || '（尚無持股）'));
+            const parts = [];
+            if (strategy) parts.push(stripCtrl(strategy));
+            parts.push('## 我的持股清單\n' + (holdingLines || '（尚無持股）'));
 
             const query = encodeURIComponent(parts.join('\n\n'));
             if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
